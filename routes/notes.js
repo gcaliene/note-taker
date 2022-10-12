@@ -4,7 +4,7 @@ const db = './db/db.json';
 const { v4: uuidv4 } = require('uuid');
 const noteRoute = require('express').Router();
 
-noteRoute.get('/notes', (req, res) => {
+noteRoute.get('/', (req, res) => {
   fs.readFile(db, 'utf8', (err, data) => {
     if (err) throw err;
     return res.json(JSON.parse(data))
@@ -12,8 +12,8 @@ noteRoute.get('/notes', (req, res) => {
 });
 
 
-noteRoute.post('/notes', (req, res) => {
-  console.log(req)
+noteRoute.post('/', (req, res) => {
+  console.log(req.body)
   const {title, text} = req.body;
 
   if (!title || !text) {
@@ -22,22 +22,20 @@ noteRoute.post('/notes', (req, res) => {
   
   const newNote = {title, text, id: uuidv4()};
 
-  fs.readFile(db, 'utf8', (err, data) => {
+  return fs.readFile(db, 'utf8', (err, data) => {
     if (err) throw err;
     let parsedNotes = [].concat(JSON.parse(data));
-    return parsedNotes
+    const updatedNotes = [...parsedNotes, newNote];
+    fs.writeFile(db, JSON.stringify(updatedNotes), (err, data) => {
+      if (err) throw err;
+      console.log('wrote to file')
+      res.status(200).json({message: 'wrote to file successfully'})
+    });
   })
-  .then((parsedNotes) => {
-    [...parsedNotes, newNote]
-  })
-  .then((updatedNotes) => {
-    fs.writeFile(db, JSON.stringify(updatedNotes))
-  })
-
 });
 
-noteRoute.delete('/notes/:id', (req, res) => {
-
+noteRoute.delete('/:id', (req, res) => {
+ console.log(req.query)
 });
 
 module.exports = noteRoute;
